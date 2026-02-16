@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioDNA Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        #alignment-result {
+            font-family: "Courier New", Courier, monospace;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body class="bg-emerald-50/50 min-h-screen">
+
+    <div class="max-w-4xl mx-auto py-10 px-4">
+        
+        <header class="mb-8 text-center md:text-left">
+            <h1 class="text-3xl font-bold text-emerald-950">BioDNA Analyzer</h1>
+            <p class="text-emerald-700/80">Outil d'analyse de séquences FASTA et détection de mutations.</p>
+        </header>
+
+        <div class="flex flex-wrap md:flex-nowrap space-x-1 bg-emerald-100/50 p-1 rounded-xl mb-6 border border-emerald-100">
+            <button onclick="openTab(event, 'single-tab')" class="tab-btn w-full py-2 text-sm font-semibold rounded-lg bg-white text-emerald-700 shadow-sm" id="defaultOpen">
+                Analyse Simple 
+            </button>
+            <button onclick="openTab(event, '3d-tab')" class="tab-btn w-full py-2 text-sm font-semibold rounded-lg text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50/50">
+             Structure 3D
+            </button>
+            <button onclick="openTab(event, 'compare-tab')" class="tab-btn w-full py-2 text-sm font-semibold rounded-lg text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50/50">
+                Comparaison 
+            </button>
+            <button onclick="openTab(event, 'viz-tab')" class="tab-btn w-full py-2 text-sm font-semibold rounded-lg text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50/50">
+             Visualisation 
+            </button>
+        </div>
+
+        <div id="single-tab" class="tab-content active space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100">
+                <label class="block text-sm font-medium mb-2 text-emerald-900">Séquence ADN (Format texte ou FASTA)</label>
+                <textarea id="sequence" class="w-full h-40 p-4 bg-emerald-50/30 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none mono text-sm" placeholder="ATGC..."></textarea>
+                <div class="flex items-center space-x-4 mt-3">
+                   <input type="file" id="fileInput" class="hidden" onchange="handleFileUpload(event)">
+                   <button onclick="document.getElementById('fileInput').click()" class="text-sm bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2 px-4 rounded-lg transition-colors border border-emerald-200">
+                        📁 Charger FASTA
+                   </button>
+                   <span id="fileName" class="text-xs text-emerald-400 italic">Aucun fichier choisi</span>
+                </div>
+                <button onclick="analyzeSequence(1)" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-100">
+                    Analyser la Séquence
+                </button>
+            </div>
+        </div>
+
+        <div id="compare-tab" class="tab-content space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div class="space-y-2">
+                     <label class="block text-sm font-semibold text-emerald-900">Séquence A (Référence)</label>
+                     <textarea id="seqA" class="w-full h-32 p-4 bg-emerald-50/30 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none mono text-sm" placeholder="Séquence de référence..."></textarea>
+                     <div class="flex items-center space-x-2">
+                        <button onclick="document.getElementById('fileA').click()" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-1.5 px-3 rounded-lg border border-emerald-200 transition-colors">📁 Charger A</button>
+                        <input type="file" id="fileA" class="hidden" onchange="handleCompareUpload(event, 'seqA', 'nameA')">
+                        <span id="nameA" class="text-[10px] text-emerald-400 italic truncate max-w-[150px]"></span>
+                     </div>
+                 </div>
+                 <div class="space-y-2">
+                     <label class="block text-sm font-semibold text-emerald-900">Séquence B (Mutée)</label>
+                     <textarea id="seqB" class="w-full h-32 p-4 bg-emerald-50/30 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none mono text-sm" placeholder="Séquence mutée..."></textarea>
+                     <div class="flex items-center space-x-2">
+                        <button onclick="document.getElementById('fileB').click()" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-1.5 px-3 rounded-lg border border-emerald-200 transition-colors">📁 Charger B</button>
+                        <input type="file" id="fileB" class="hidden" onchange="handleCompareUpload(event, 'seqB', 'nameB')">
+                        <span id="nameB" class="text-[10px] text-emerald-400 italic truncate max-w-[150px]"></span> 
+                     </div>
+                 </div>                  
+              </div>
+              <button onclick="compareSequences()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-100">
+                 Comparer les Séquences
+              </button>
+           </div>
+        </div>
+        
+        <div id="viz-tab" class="tab-content space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100">
+              <h3 class="text-lg font-bold text-emerald-900 mb-4">Alignement ADN</h3>
+              <pre id="alignment-result" class="p-6 bg-slate-900 text-emerald-400 rounded-xl font-mono text-sm overflow-x-auto border border-emerald-900 leading-relaxed"></pre>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100">
+             <h3 class="text-lg font-bold text-emerald-900 mb-4">Alignement Protéines</h3>
+             <pre id="protein-alignment-result" class="p-6 bg-slate-900 text-emerald-300 rounded-xl overflow-x-auto border border-emerald-900"></pre>
+            </div>
+        </div>
+
+        <div id="3d-tab" class="tab-content space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100">
+                <h3 class="text-lg font-bold text-emerald-900 mb-2">Analyse Structurelle 3D (IA AlphaFold)</h3>
+                <p class="text-sm text-emerald-600 mb-4">Génère la structure 3D à partir de la séquence d'acides aminés analysée.</p>
+                <div class="flex gap-4 mb-4">
+                   <button id="btn-3d" onclick="loadStructureFromSequence()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-all flex items-center">
+                     ✨ Générer la structure 3D
+                    </button>
+                </div>
+                <div id="viewport" style="width:100%; height:500px;" class="bg-slate-950 rounded-xl border border-emerald-900 shadow-inner"></div>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <h2 class="text-lg font-bold text-emerald-900 mb-4 border-b border-emerald-200 pb-2">📊 Résultats d'analyse</h2>
+            <pre id="result" class="w-full p-6 bg-slate-900 text-emerald-50 rounded-2xl overflow-x-auto mono text-sm leading-relaxed border border-emerald-800 shadow-xl"></pre>
+        </div>
+
+    </div> 
+    
+    <script src="https://unpkg.com/ngl@2.0.0-dev.37/dist/ngl.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
