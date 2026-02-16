@@ -1,5 +1,4 @@
 import difflib
-#git remote add origin https://github.com/moha-ouri12/DNA-Sequence-Analysis--Mutation-Detection
 GENETIC_CODE = {
     'ATA':'Ile', 'ATC':'Ile', 'ATT':'Ile', 'ATG':'Met', 'ACA':'Thr', 'ACC':'Thr', 'ACG':'Thr', 'ACT':'Thr',
     'AAC':'Asn', 'AAT':'Asn', 'AAA':'Lys', 'AAG':'Lys', 'AGC':'Ser', 'AGT':'Ser', 'AGA':'Arg', 'AGG':'Arg',
